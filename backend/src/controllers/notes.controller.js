@@ -1,9 +1,11 @@
+const NoteModel = require("../models/Note");
 const notesController = {};
 
-notesController.getNotes = (req, res) => {
-  res.send("");
+notesController.getNotes = async (req, res) => {
+  const notes = NoteModel.find();
+  res.json(notes);
 };
-notesController.createNote = (req, res) => {
+notesController.createNote = async (req, res) => {
   res.send("");
 };
 notesController.updateNote = (req, res) => {
