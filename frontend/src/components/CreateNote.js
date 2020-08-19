@@ -10,11 +10,27 @@ export default class CreateNote extends Component {
     title: "",
     content: "",
     date: new Date(),
+    editing: false,
+    _id: "",
   };
 
   async componentDidMount() {
     const res = await axios.get("http://localhost:4000/api/users");
     this.setState({ users: res.data.map((user) => user.username) });
+
+    if (this.props.match.params.id) {
+      const note = await axios.get(
+        "http://localhost:4000/api/notes/" + this.props.match.params.id
+      );
+      this.setState({
+        title: note.data.title,
+        content: note.data.content,
+        date: new Date(note.data.date),
+        userSelected: note.data.author,
+        editing: true,
+        _id: this.props.match.params.id,
+      });
+    }
   }
 
   onSubmit = async (e) => {
@@ -23,6 +39,7 @@ export default class CreateNote extends Component {
       alert("Select a user!");
       return;
     }
+
     const newNote = {
       title: this.state.title,
       content: this.state.content,
@@ -30,8 +47,16 @@ export default class CreateNote extends Component {
       author: this.state.userSelected,
     };
 
-    await axios.post("http://localhost:4000/api/notes", newNote);
-    this.props.history.push('/')
+    if (this.state.editing) {
+      await axios.put(
+        "http://localhost:4000/api/notes/" + this.state._id,
+        newNote
+      );
+    } else {
+      await axios.post("http://localhost:4000/api/notes", newNote);
+    }
+
+    this.props.history.push("/");
   };
 
   onInputChange = (e) => {
@@ -54,6 +79,7 @@ export default class CreateNote extends Component {
               className="form-control"
               name="userSelected"
               onChange={this.onInputChange}
+              value={this.state.userSelected}
             >
               <option value="">-- Select --</option>
               {this.state.users.map((user) => (
@@ -71,6 +97,7 @@ export default class CreateNote extends Component {
               name="title"
               required
               onChange={this.onInputChange}
+              value={this.state.title}
             />
           </div>
           <div className="form-group">
@@ -79,6 +106,7 @@ export default class CreateNote extends Component {
               className="form-control"
               placeholder="Content"
               onChange={this.onInputChange}
+              value={this.state.content}
             ></textarea>
           </div>
           <div className="form-group">
